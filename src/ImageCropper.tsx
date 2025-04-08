@@ -4,7 +4,7 @@ interface ImageCropperProps {
   image: HTMLImageElement | null;
   pageIndex: number;
   cutLinesPerPage: Record<number, number[]>;
-  setCutLinesPerPage: (lines: Record<number, number[]>) => void;
+  setCutLinesPerPage: React.Dispatch<React.SetStateAction<Record<number, number[]>>>;
 }
 
 const ImageCropper: React.FC<ImageCropperProps> = ({
@@ -36,12 +36,11 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
         ctx.lineTo(canvas.width, y);
         ctx.stroke();
 
-        // Coordinate label
-        ctx.font = '50px monospace';
+        // Label
+        ctx.font = '25px monospace';
         ctx.lineWidth = 3;
         ctx.strokeStyle = 'white';
         ctx.strokeText(`y: ${y}`, 10, y - 6);
-
         ctx.fillStyle = 'red';
         ctx.fillText(`y: ${y}`, 10, y - 6);
       });
@@ -57,22 +56,22 @@ const ImageCropper: React.FC<ImageCropperProps> = ({
     const rawY = e.clientY - rect.top;
     const scaledY = Math.round(rawY * scaleY);
 
-    setCutLinesPerPage((prev) => {
+    setCutLinesPerPage((prev: Record<number, number[]>) => {
       const updated = { ...prev };
-      const currentLines = [...(prev[pageIndex] || [])];
+      const pageLines = [...(prev[pageIndex] || [])];
 
       const proximityThreshold = 5;
-      const indexToRemove = currentLines.findIndex((lineY) =>
+      const indexToRemove = pageLines.findIndex((lineY) =>
         Math.abs(lineY - scaledY) <= proximityThreshold
       );
 
       if (indexToRemove !== -1) {
-        currentLines.splice(indexToRemove, 1); // Remove nearby line
+        pageLines.splice(indexToRemove, 1); // Remove nearby line
       } else {
-        currentLines.push(scaledY); // Add new line
+        pageLines.push(scaledY); // Add new line
       }
 
-      updated[pageIndex] = currentLines.sort((a, b) => a - b);
+      updated[pageIndex] = pageLines.sort((a, b) => a - b);
       return updated;
     });
   };
